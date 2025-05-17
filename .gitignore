@@ -1,0 +1,30 @@
+# Python
+venv/
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+.env
+*.log
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Large data (consider Git LFS for these if you MUST track them,
+# otherwise, keep them out of Git)
+downloaded_lidar_data/
+merged_dtm/
+processed_dtm/
+# Or specific large file extensions if they are mixed with code you want to track
+# *.tif
+# *.laz
+# *.las
+
+# IDE specific
+.vscode/
+*.code-workspace # Only if it contains user-specific paths, otherwise it can be tracked
+
+# OS specific
+.DS_Store
+Thumbs.db

@@ -1,0 +1,26 @@
+[
+    {
+        "type": "readers.las",
+        "filename": "tile.laz"
+    },
+    {
+        "type": "filters.range",
+        "limits": "Classification![7:7]"
+    },
+    {
+        "type": "filters.smrf",
+        "scalar": 1.2,
+        "slope": 0.2,
+        "window": 16,
+        "threshold": 0.45
+    },
+    {
+        "type": "writers.gdal",
+        "filename": "dtm_1m.tif",
+        "output_type": "idw",
+        "gdaldriver": "GTiff",
+        "resolution": 1.0,
+        "dimension": "Z"
+    }
+]
+  
