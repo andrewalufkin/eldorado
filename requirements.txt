@@ -1,6 +1,15 @@
-openai>=1.0.0
-numpy>=1.24.0
-matplotlib>=3.4.0
-python-dotenv>=0.19.0
-geopandas>=0.13.2
-shapely>=2.0.0 
+# requirements.txt
+earthaccess
+h5py
+pandas
+pyarrow
+gdal
+rasterio
+scikit-image
+openai>=1.17
+boto3
+pystac_client
+numpy
+shapely
+pytest
+pyproj

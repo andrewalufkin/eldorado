@@ -1,0 +1,12 @@
+{
+  "identified_anomaly_footprints_details": [
+    {
+      "rank_in_script": 1,
+      "centroid_wkt_epsg4326": "POINT (-68.64948491108848 -0.2956396492368558)",
+      "cluster_size": 1983,
+      "cluster_label": 0,
+      "f1_value": 0.0,
+      "f2_value": -0.8009306788444519
+    }
+  ]
+}

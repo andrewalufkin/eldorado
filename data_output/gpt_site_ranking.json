@@ -1,0 +1,10 @@
+{
+  "results": [
+    {
+      "rank": 1,
+      "centroid_wkt": "POINT (-68.64948491108848 -0.2956396492368558)",
+      "confidence": 0.83,
+      "rationale": "High canopy height suggests potential anthropogenic alteration. Soil redness index may indicate soil disturbance consistent with earthworks."
+    }
+  ]
+}

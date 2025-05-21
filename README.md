@@ -49,6 +49,25 @@ pip install -r requirements.txt
 - `download_sentinel.py` - Sentinel-2 data download utility
 - `download_gedi.py` - GEDI data download utility
 - `check_raster_validity.py` - Raster data validation tool
+- `source_catalog.csv` - Data source catalog
+
+## Dependencies
+
+The project relies on several key Python packages:
+- earthaccess - NASA Earth data access
+- h5py - HDF5 file handling
+- pandas - Data manipulation
+- pyarrow - Data processing
+- gdal - Geospatial data processing
+- rasterio - Raster data handling
+- scikit-image - Image processing
+- openai - AI integration
+- boto3 - AWS integration
+- pystac_client - STAC catalog access
+- numpy - Numerical computing
+- shapely - Geospatial operations
+- pytest - Testing framework
+- pyproj - Projection handling
 
 ## Usage
 
@@ -79,19 +98,3 @@ The analysis generates several outputs in the `data_output/` directory:
 - Feature rasters
 - Site rankings
 - Analysis manifests
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-[Add appropriate license information]
-
-## Contact
-
-[Add contact information] 
