@@ -17,9 +17,9 @@ downloaded_lidar_data/
 merged_dtm/
 processed_dtm/
 # Or specific large file extensions if they are mixed with code you want to track
-# *.tif
-# *.laz
-# *.las
+*.tif
+*.laz
+*.las
 
 # IDE specific
 .vscode/
@@ -28,3 +28,21 @@ processed_dtm/
 # OS specific
 .DS_Store
 Thumbs.db
+
+# Project specific
+data_output/gedi/
+data_output/sentinel2_bands/
+data_output/features/
+data_output/temp_gedi_downloads/
+data_output/diagnostics/
+*.h5
+*.hdf5
+*.parquet
+*.tiff
+*.geotiff
+*.nc
+*.netcdf
+
+# Keep important result files
+!data_output/gpt_site_ranking.json
+!data_output/manifest.json
