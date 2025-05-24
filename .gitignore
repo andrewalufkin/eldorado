@@ -34,7 +34,6 @@ data_output/gedi/
 data_output/sentinel2_bands/
 data_output/features/
 data_output/temp_gedi_downloads/
-data_output/diagnostics/
 *.h5
 *.hdf5
 *.parquet
