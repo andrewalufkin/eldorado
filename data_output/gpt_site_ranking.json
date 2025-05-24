@@ -2,9 +2,33 @@
   "results": [
     {
       "rank": 1,
-      "centroid_wkt": "POINT (-68.64948491108848 -0.2956396492368558)",
-      "confidence": 0.83,
-      "rationale": "High canopy height suggests potential anthropogenic alteration. Soil redness index may indicate soil disturbance consistent with earthworks."
+      "centroid_wkt": "POINT (-62.94008124471406 -8.068802698302854)",
+      "confidence": 0.75,
+      "rationale": "Central location with potential archaeological significance; proximity to other findings increases confidence."
+    },
+    {
+      "rank": 2,
+      "centroid_wkt": "POINT (-62.96239807677524 -8.125126234141096)",
+      "confidence": 0.7,
+      "rationale": "Located within a clustered region of interest, warranting further investigation."
+    },
+    {
+      "rank": 3,
+      "centroid_wkt": "POINT (-63.01187178211563 -8.168271791949843)",
+      "confidence": 0.65,
+      "rationale": "Slightly more isolated yet in a relatively rich archaeological context."
+    },
+    {
+      "rank": 4,
+      "centroid_wkt": "POINT (-63.30976324952642 -8.180042108450554)",
+      "confidence": 0.55,
+      "rationale": "Further from known significant sites, reduces likelihood of being anthropogenic."
+    },
+    {
+      "rank": 5,
+      "centroid_wkt": "POINT (-62.93481416955605 -7.687940660772559)",
+      "confidence": 0.5,
+      "rationale": "Least connections to significant archaeological contexts; appears to be a low-priority site."
     }
   ]
 }

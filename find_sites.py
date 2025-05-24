@@ -14,21 +14,19 @@ import matplotlib.pyplot as plt
 from scipy.spatial.distance import pdist
 from sklearn.neighbors import NearestNeighbors
 
-# Step 1: Hard-code one small AOI
-AOI = [-68.66, -0.30, -68.64, -0.29]  # lon_min, lat_min, lon_max, lat_max (using the same AOI as download_gedi.py)
-# Note: this is very small so there won't be many anomalies. GEDI data is dense so for this script I'm running 
-# on my local machine I'm only using a tiny AOI. Obviously the ultimate area will be much larger.
+# Small AOI for testing (lon_min, lat_min, lon_max, lat_max)
+AOI = [-68.66, -0.30, -68.64, -0.29]
 
-# Define parameters for clustering
-TOP_N_ABSOLUTE_PIXELS = 2000  # Number of top pixels to consider for clustering
-DBSCAN_EPS_METERS = 100  # DBSCAN epsilon in meters
-DBSCAN_MIN_SAMPLES = 10  # Minimum samples for DBSCAN
-NUM_LARGEST_CLUSTERS = 5  # Number of largest clusters to find
+# Clustering parameters
+TOP_N_ABSOLUTE_PIXELS = 2000
+DBSCAN_EPS_METERS = 100
+DBSCAN_MIN_SAMPLES = 10
+NUM_LARGEST_CLUSTERS = 5
 TARGET_PROJECTED_CRS = "EPSG:32720"  # UTM Zone 20S for the AOI
 OUTPUT_CENTROIDS_CRS = "EPSG:4326"  # For WKT in manifest
 
-# Define resolution for the target 30m grid (in degrees for EPSG:4326)
-TARGET_RESOLUTION_DEGREES = 0.00027  # Approximate 30m in degrees for EPSG:4326
+# Target resolution for 30m grid (in degrees for EPSG:4326)
+TARGET_RESOLUTION_DEGREES = 0.00027
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Find potential archaeological sites using GEDI and Sentinel-2 data.')
@@ -46,29 +44,24 @@ def run_download_script(script_name, aoi):
     """Run a download script with the given AOI."""
     print(f"\nRunning {script_name}...")
     try:
-        # Create a temporary script that sets the AOI
         temp_script = f"temp_{script_name}"
         with open(script_name, 'r') as f:
             script_content = f.read()
         
-        # Replace the AOI definition (for backward compatibility)
         new_aoi_line = f"AOI = {aoi}  # lon_min, lat_min, lon_max, lat_max\n"
         script_content = script_content.replace("AOI = [-68.66, -0.30, -68.64, -0.29]", new_aoi_line)
         
         with open(temp_script, 'w') as f:
             f.write(script_content)
         
-        # Make the script executable
         os.chmod(temp_script, 0o755)
         
-        # Run the script with --bbox argument if it's a sentinel or gedi download
         if script_name in ['download_sentinel.py', 'download_gedi.py']:
             bbox_args = ["--bbox"] + [str(x) for x in aoi]
             result = subprocess.run([f"./{temp_script}"] + bbox_args, capture_output=True, text=True)
         else:
             result = subprocess.run([f"./{temp_script}"], capture_output=True, text=True)
         
-        # Clean up
         os.remove(temp_script)
         
         if result.returncode != 0:
@@ -84,54 +77,28 @@ def run_download_script(script_name, aoi):
 
 def setup_output_paths(base_output_dir, aoi):
     """Setup all output paths based on the base output directory and AOI."""
-    # Define output paths
-    GEDI_OUTPUT_DIR = os.path.join(base_output_dir, 'gedi')
-    # Generate bbox-specific filename
     bbox_str = '_'.join([f"{coord:.2f}" for coord in aoi])
-    GEDI_PARQUET_FILE = os.path.join(GEDI_OUTPUT_DIR, f"gedi_l2a_bbox_{bbox_str}.parquet")
-    TEMP_GEDI_DOWNLOAD_DIR = os.path.join(base_output_dir, 'temp_gedi_downloads')
-
-    SENTINEL2_BANDS_DIR = os.path.join(base_output_dir, 'sentinel2_bands')
-    SENTINEL2_BANDS_NEEDED = ['B04', 'B08'] # Red (B4) and NIR (B8)
-    SENTINEL2_DATE_RANGE = ("2023-06-01", "2023-08-31") 
-
-    FEATURE_OUTPUT_DIR = os.path.join(base_output_dir, 'features')
-    # BBOX-specific soil index raster path
-    SOIL_INDEX_RASTER_PATH = os.path.join(FEATURE_OUTPUT_DIR, f"soil_index_bbox_{bbox_str}.tif")
-
-    GEDI_F1_RASTER_PATH = os.path.join(FEATURE_OUTPUT_DIR, 'gedi_f1_canopy_depression.tif')
-
-    # Paths for aligned/processed features (will be 30m)
-    ALIGNED_F1_RASTER_PATH = os.path.join(FEATURE_OUTPUT_DIR, 'f1_canopy_depression_30m.tif')
-    ALIGNED_F2_RASTER_PATH = os.path.join(FEATURE_OUTPUT_DIR, 'f2_soil_index_30m.tif')
-
-    # Paths for Z-scored features and anomaly raster
-    ZSCORED_F1_PATH = os.path.join(FEATURE_OUTPUT_DIR, 'f1_zscored_30m.tif')
-    ZSCORED_F2_PATH = os.path.join(FEATURE_OUTPUT_DIR, 'f2_zscored_30m.tif')
-    ANOMALY_RASTER_PATH = os.path.join(FEATURE_OUTPUT_DIR, 'anomaly_raster_30m.tif')
-
-    # Path for GPT ranking output
-    GPT_RANKING_JSON_PATH = os.path.join(base_output_dir, 'gpt_site_ranking.json')
-    MANIFEST_FILE_PATH = os.path.join(base_output_dir, 'manifest.json')
-
-    return {
-        'GEDI_OUTPUT_DIR': GEDI_OUTPUT_DIR,
-        'GEDI_PARQUET_FILE': GEDI_PARQUET_FILE,
-        'TEMP_GEDI_DOWNLOAD_DIR': TEMP_GEDI_DOWNLOAD_DIR,
-        'SENTINEL2_BANDS_DIR': SENTINEL2_BANDS_DIR,
-        'SENTINEL2_BANDS_NEEDED': SENTINEL2_BANDS_NEEDED,
-        'SENTINEL2_DATE_RANGE': SENTINEL2_DATE_RANGE,
-        'FEATURE_OUTPUT_DIR': FEATURE_OUTPUT_DIR,
-        'SOIL_INDEX_RASTER_PATH': SOIL_INDEX_RASTER_PATH,
-        'GEDI_F1_RASTER_PATH': GEDI_F1_RASTER_PATH,
-        'ALIGNED_F1_RASTER_PATH': ALIGNED_F1_RASTER_PATH,
-        'ALIGNED_F2_RASTER_PATH': ALIGNED_F2_RASTER_PATH,
-        'ZSCORED_F1_PATH': ZSCORED_F1_PATH,
-        'ZSCORED_F2_PATH': ZSCORED_F2_PATH,
-        'ANOMALY_RASTER_PATH': ANOMALY_RASTER_PATH,
-        'GPT_RANKING_JSON_PATH': GPT_RANKING_JSON_PATH,
-        'MANIFEST_FILE_PATH': MANIFEST_FILE_PATH
+    
+    paths = {
+        'GEDI_OUTPUT_DIR': os.path.join(base_output_dir, 'gedi'),
+        'GEDI_PARQUET_FILE': os.path.join(base_output_dir, 'gedi', f"gedi_l2a_bbox_{bbox_str}.parquet"),
+        'TEMP_GEDI_DOWNLOAD_DIR': os.path.join(base_output_dir, 'temp_gedi_downloads'),
+        'SENTINEL2_BANDS_DIR': os.path.join(base_output_dir, 'sentinel2_bands'),
+        'SENTINEL2_BANDS_NEEDED': ['B04', 'B08'],
+        'SENTINEL2_DATE_RANGE': ("2023-06-01", "2023-08-31"),
+        'FEATURE_OUTPUT_DIR': os.path.join(base_output_dir, 'features'),
+        'SOIL_INDEX_RASTER_PATH': os.path.join(base_output_dir, 'features', f"soil_index_bbox_{bbox_str}.tif"),
+        'GEDI_F1_RASTER_PATH': os.path.join(base_output_dir, 'features', 'gedi_f1_canopy_depression.tif'),
+        'ALIGNED_F1_RASTER_PATH': os.path.join(base_output_dir, 'features', 'f1_canopy_depression_30m.tif'),
+        'ALIGNED_F2_RASTER_PATH': os.path.join(base_output_dir, 'features', 'f2_soil_index_30m.tif'),
+        'ZSCORED_F1_PATH': os.path.join(base_output_dir, 'features', 'f1_zscored_30m.tif'),
+        'ZSCORED_F2_PATH': os.path.join(base_output_dir, 'features', 'f2_zscored_30m.tif'),
+        'ANOMALY_RASTER_PATH': os.path.join(base_output_dir, 'features', 'anomaly_raster_30m.tif'),
+        'GPT_RANKING_JSON_PATH': os.path.join(base_output_dir, 'gpt_site_ranking.json'),
+        'MANIFEST_FILE_PATH': os.path.join(base_output_dir, 'manifest.json')
     }
+    
+    return paths
 
 def analyze_point_distribution(coords_list, output_dir):
     """
@@ -143,13 +110,11 @@ def analyze_point_distribution(coords_list, output_dir):
     """
     print("\nAnalyzing point distribution...")
     
-    # Convert to numpy array for easier manipulation
     coords = np.array(coords_list)
     
-    # 1. Calculate nearest neighbor distances
     nbrs = NearestNeighbors(n_neighbors=2).fit(coords)
     distances, _ = nbrs.kneighbors(coords)
-    neighbor_distances = distances[:, 1]  # Distance to nearest neighbor
+    neighbor_distances = distances[:, 1]
     
     print(f"Nearest neighbor statistics:")
     print(f"  Mean distance: {np.mean(neighbor_distances):.2f} degrees")
@@ -157,10 +122,8 @@ def analyze_point_distribution(coords_list, output_dir):
     print(f"  Min distance: {np.min(neighbor_distances):.2f} degrees")
     print(f"  Max distance: {np.max(neighbor_distances):.2f} degrees")
     
-    # 2. Create diagnostic plots
     os.makedirs(output_dir, exist_ok=True)
     
-    # Plot 1: Point distribution
     plt.figure(figsize=(10, 10))
     plt.scatter(coords[:, 0], coords[:, 1], c='blue', alpha=0.5, s=1)
     plt.title('Spatial Distribution of Top 2000 Points')
@@ -169,7 +132,6 @@ def analyze_point_distribution(coords_list, output_dir):
     plt.savefig(os.path.join(output_dir, 'point_distribution.png'))
     plt.close()
     
-    # Plot 2: Nearest neighbor distance histogram
     plt.figure(figsize=(10, 6))
     plt.hist(neighbor_distances, bins=50)
     plt.title('Distribution of Nearest Neighbor Distances')
@@ -196,16 +158,13 @@ def main(args_dict):
     print(f"Outputting data to base directory: {base_output_dir}")
     print(f"Target 30m grid resolution (approx degrees for EPSG:4326): {TARGET_RESOLUTION_DEGREES}")
 
-    # Setup all output paths
     paths = setup_output_paths(base_output_dir, aoi)
 
-    # Create output directories
     os.makedirs(paths['GEDI_OUTPUT_DIR'], exist_ok=True)
     os.makedirs(paths['TEMP_GEDI_DOWNLOAD_DIR'], exist_ok=True)
     os.makedirs(paths['SENTINEL2_BANDS_DIR'], exist_ok=True)
     os.makedirs(paths['FEATURE_OUTPUT_DIR'], exist_ok=True)
 
-    # Check if GEDI parquet file exists and download if needed
     if not os.path.exists(paths['GEDI_PARQUET_FILE']) and not skip_downloads:
         print("GEDI data not found. Downloading...")
         if not run_download_script('download_gedi.py', aoi):
@@ -215,7 +174,6 @@ def main(args_dict):
         print(f"GEDI parquet file {paths['GEDI_PARQUET_FILE']} not found and downloads are skipped. Exiting.")
         return
 
-    # Check if Sentinel-2 data exists and download if needed
     if not os.path.exists(paths['SOIL_INDEX_RASTER_PATH']) and not skip_downloads:
         print("Sentinel-2 data not found. Downloading...")
         if not run_download_script('download_sentinel.py', aoi):
@@ -225,7 +183,6 @@ def main(args_dict):
         print(f"Sentinel-2 soil index raster {paths['SOIL_INDEX_RASTER_PATH']} not found and downloads are skipped. Exiting.")
         return
 
-    # Define Target 30m Grid Profile
     print("\nDefining target 30m grid profile...")
     target_profile_30m, target_transform_30m = features.create_target_grid_profile(
         aoi_bounds=aoi,
@@ -234,7 +191,6 @@ def main(args_dict):
     )
     print(f"Target 30m grid - Profile: {target_profile_30m['width']}x{target_profile_30m['height']} pixels, CRS: {target_profile_30m['crs']}")
 
-    # Derive f1 = (RH95 < 30 m) from GEDI
     print("\nDeriving GEDI feature f1 (canopy depression)...")
     f1_raster_path = features.create_gedi_canopy_depression_feature(
         gedi_parquet_path=paths['GEDI_PARQUET_FILE'],
@@ -406,6 +362,17 @@ def main(args_dict):
     with open(paths['MANIFEST_FILE_PATH'], 'w') as f:
         json.dump(manifest_data, f, indent=2)
     print(f"Manifest saved to {paths['MANIFEST_FILE_PATH']}")
+
+    # --- Step 6: Generate GPT ranking of sites ---
+    print("\nGenerating GPT ranking of sites...")
+    gpt_ranking = utils.reprompt_gpt_and_save_ranking(
+        centroids_data_for_gpt=found_centroids,
+        output_json_path=paths['GPT_RANKING_JSON_PATH']
+    )
+    if gpt_ranking:
+        print(f"GPT ranking saved to {paths['GPT_RANKING_JSON_PATH']}")
+    else:
+        print("Warning: GPT ranking generation failed")
 
 if __name__ == "__main__":
     args = parse_args()

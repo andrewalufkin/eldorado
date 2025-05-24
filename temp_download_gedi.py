@@ -5,7 +5,8 @@ import os
 from src import data
 
 # AOI around a known GEDI shot location
-AOI = [-68.66, -0.30, -68.64, -0.29]  # lon_min, lat_min, lon_max, lat_max
+AOI = [-68.66, -0.3, -68.64, -0.29]  # lon_min, lat_min, lon_max, lat_max
+  # lon_min, lat_min, lon_max, lat_max
 
 # Define output paths
 OUTPUT_BASE_DIR = 'data_output'
